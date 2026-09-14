@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>落花缺Blog · 知识工作台</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/vendor/lucide.js" defer></script>
+    <script src="/vendor/purify.js" defer></script>
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <a class="brand" href="/"
+        ><span class="brand-icon"><i data-lucide="library"></i></span
+        ><span>落花缺Blog <small>知识工作台</small></span></a
+      >
+      <div class="workspace-name">
+        <span class="status-dot"></span> 个人知识工作台 <span class="local-label">本地</span>
+      </div>
+      <nav id="navigation" aria-label="工作台导航"></nav>
+      <div class="sidebar-bottom">
+        <a href="http://127.0.0.1:4311" target="_blank" rel="noopener"
+          ><i data-lucide="arrow-up-right"></i> 博客预览</a
+        ><span id="ai-status">规则整理</span>
+      </div>
+    </aside>
+    <main class="workspace">
+      <header class="topbar">
+        <div>
+          <span class="eyebrow">MY KNOWLEDGE</span>
+          <h1 id="page-title">收件箱</h1>
+        </div>
+        <div class="toolbar">
+          <button id="collect" class="secondary">
+            <i data-lucide="radar"></i><span>采集一次</span></button
+          ><button id="new-note" class="primary">
+            <i data-lucide="plus"></i><span>添加内容</span>
+          </button>
+        </div>
+      </header>
+      <section class="metrics" id="metrics" aria-label="知识库概况"></section>
+      <div id="job-banner" hidden></div>
+      <section id="content" aria-live="polite"></section>
+    </main>
+    <dialog id="capture-dialog">
+      <form id="capture-form">
+        <div class="dialog-heading">
+          <h2>添加到收件箱</h2>
+          <button type="button" class="icon close-dialog" title="关闭" aria-label="关闭">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <div class="segmented" id="capture-modes">
+          <button type="button" data-mode="manual" class="active">手写笔记</button
+          ><button type="button" data-mode="web">网页</button
+          ><button type="button" data-mode="wechat">微信收藏</button>
+        </div>
+        <label>标题<input name="title" maxlength="160" placeholder="给这条知识起个名字" /></label>
+        <label id="url-field" hidden
+          >原文链接<input name="url" type="url" placeholder="https://..."
+        /></label>
+        <label
+          >正文<textarea
+            name="body"
+            rows="10"
+            placeholder="写下想法，或粘贴 Markdown 正文"
+          ></textarea>
+        </label>
+        <div class="dialog-actions">
+          <button type="button" class="secondary close-dialog">取消</button
+          ><button type="submit" class="primary"><i data-lucide="inbox"></i>收录</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="confirm-dialog">
+      <div class="dialog-heading"><h2 id="confirm-title">确认操作</h2></div>
+      <p id="confirm-message"></p>
+      <div id="topic-field" hidden>
+        <label>专题标题<input id="topic-title" maxlength="160" /></label>
+      </div>
+      <div class="dialog-actions">
+        <button id="confirm-cancel" class="secondary">取消</button
+        ><button id="confirm-ok" class="primary">确认</button>
+      </div>
+    </dialog>
+    <div id="toast" role="status" hidden></div>
+  </body>
+</html>

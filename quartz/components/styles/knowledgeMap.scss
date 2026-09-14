@@ -1,0 +1,208 @@
+body[data-slug="index"] {
+  .page {
+    max-width: none;
+  }
+  #quartz-root > #quartz-body {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    grid-template-rows: 100dvh;
+    grid-template-areas: "grid-sidebar-left grid-center";
+    padding: 0;
+    gap: 0;
+  }
+  #quartz-body > .sidebar.left {
+    box-sizing: border-box;
+    padding: 28px 20px;
+    height: 100dvh;
+    position: relative;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+  }
+  .sidebar.left .spacer,
+  .sidebar.left .readermode {
+    display: none;
+  }
+  #quartz-body > .center {
+    grid-area: grid-center;
+    margin: 0;
+    padding: 0;
+  }
+  .center > .page-header,
+  .center > article,
+  .center > hr,
+  #quartz-body > .sidebar.right,
+  #quartz-body > footer {
+    display: none;
+  }
+  .center > .page-footer {
+    margin: 0;
+  }
+  &.map-directory-collapsed {
+    #quartz-root > #quartz-body {
+      grid-template-columns: 0 minmax(0, 1fr);
+    }
+    #quartz-body > .sidebar.left {
+      visibility: hidden;
+      padding: 0;
+      overflow: hidden;
+    }
+  }
+  @media (max-width: 800px) {
+    #quartz-root > #quartz-body {
+      grid-template-columns: min(260px, 72vw) minmax(0, 1fr);
+    }
+    .sidebar.left .explorer {
+      display: flex;
+      position: relative;
+    }
+    .sidebar.left .explorer .explorer-content {
+      position: static;
+      display: block;
+      max-height: none;
+      visibility: visible;
+      transform: none;
+      width: 100%;
+      border: 0;
+      padding: 0;
+    }
+    .sidebar.left .explorer .mobile-explorer {
+      display: none;
+    }
+  }
+}
+.knowledge-map {
+  position: relative;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: radial-gradient(circle, var(--lightgray) 1px, transparent 1px) 0 0 / 24px 24px;
+}
+.map-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 24px;
+  background: var(--light);
+  border-bottom: 1px solid var(--lightgray);
+}
+.map-toolbar h1 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+.map-toolbar p {
+  font-size: 0.85rem;
+  margin: 6px 0 0;
+  color: var(--darkgray);
+}
+.map-directory-toggle,
+.map-close {
+  cursor: pointer;
+  color: var(--dark);
+  background: var(--light);
+  border: 1px solid var(--lightgray);
+  border-radius: 8px;
+  padding: 10px;
+  white-space: nowrap;
+}
+.map-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.map-edges {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  pointer-events: none;
+}
+.map-edges line {
+  stroke: var(--secondary);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.45;
+}
+.map-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-width: 32%;
+  width: max-content;
+  padding: 8px;
+  border: 0;
+  background: var(--light);
+  color: var(--dark);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+.map-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--secondary);
+  box-shadow: 0 0 0 6px var(--highlight);
+}
+.map-node:hover,
+.map-node[aria-expanded="true"],
+.map-node:focus-visible {
+  outline: 2px solid var(--secondary);
+}
+.map-preview {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  width: min(420px, calc(100% - 48px));
+  box-sizing: border-box;
+  padding: 24px;
+  background: var(--light);
+  border: 1px solid var(--lightgray);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px #0002;
+  z-index: 2;
+  max-height: 60%;
+  overflow: auto;
+}
+.map-preview[hidden] {
+  display: none;
+}
+.map-preview h2 {
+  margin: 0 32px 12px 0;
+  font-size: 1.15rem;
+}
+.map-preview p {
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.map-close {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  padding: 3px 10px;
+  font-size: 20px;
+}
+.map-read {
+  display: inline-block;
+  padding: 8px 20px;
+  border-radius: 6px;
+  background: var(--secondary);
+  color: var(--light);
+}
+@media (max-width: 800px) {
+  .map-toolbar {
+    padding: 16px 12px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .map-node {
+    font-size: 0.8rem;
+  }
+}

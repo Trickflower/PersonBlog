@@ -1,0 +1,125 @@
+@use "./base.scss";
+
+* {
+  letter-spacing: 0;
+}
+body {
+  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+.page-title {
+  font-size: 1.5rem;
+  line-height: 1.4;
+}
+.article-title {
+  font-size: 2rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.center {
+  min-width: 0;
+}
+article p,
+article li {
+  line-height: 1.85;
+}
+.sidebar.left {
+  border-right: 1px solid var(--lightgray);
+  padding-right: 1.2rem;
+}
+.graph-outer {
+  border-radius: 6px !important;
+}
+.knowledge-cover,
+article img[src$="library.jpg"] {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin: 1rem 0 0;
+}
+.knowledge-feed {
+  margin-top: 2rem;
+}
+.feed-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--lightgray);
+  padding-bottom: 1rem;
+}
+.feed-heading h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+.feed-heading span {
+  font-size: 0.85rem;
+  color: var(--gray);
+}
+.feed-row {
+  padding: 1.35rem 0;
+  border-bottom: 1px solid var(--lightgray);
+}
+.feed-meta {
+  display: flex;
+  gap: 1rem;
+  color: var(--gray);
+  font-size: 0.8rem;
+}
+.feed-meta span {
+  color: var(--secondary);
+}
+.feed-row h3 {
+  margin: 0.6rem 0 0.4rem;
+  font-size: 1.15rem;
+}
+.feed-row p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--darkgray);
+}
+.feed-row a {
+  background: none !important;
+}
+@media (max-width: 800px) {
+  .sidebar.left .page-title {
+    font-size: 1.1rem;
+  }
+  .sidebar.left .search {
+    min-width: 32px;
+    max-width: 32px;
+    flex: none;
+  }
+  .sidebar.left .search-button {
+    padding: 0;
+    width: 32px;
+  }
+  .sidebar.left .search-button p {
+    display: none;
+  }
+  .sidebar.left {
+    border: 0;
+    padding-right: 0;
+  }
+  .article-title {
+    font-size: 1.65rem;
+  }
+  .knowledge-cover,
+  article img[src$="library.jpg"] {
+    height: 140px;
+  }
+}
+.related-knowledge h3 {
+  font-size: 1rem;
+  margin: 0 0 0.75rem;
+}
+.related-knowledge ul {
+  list-style: none;
+  padding: 0;
+}
+.related-knowledge li {
+  margin: 0.6rem 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}

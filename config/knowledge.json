@@ -1,0 +1,44 @@
+{
+  "site": {
+    "title": "落花缺Blog",
+    "description": "把学到的东西留下来，让独立的笔记慢慢连接。",
+    "baseUrl": "trickflower.github.io/PersonBlog",
+    "repository": "Trickflower/PersonBlog",
+    "author": "Trickflower"
+  },
+  "categories": [
+    "技术",
+    "工具",
+    "思考",
+    "项目观察",
+    "专题",
+    "周记"
+  ],
+  "sources": {
+    "rss": [
+      "https://github.blog/feed/"
+    ],
+    "github": {
+      "enabled": true,
+      "days": 30,
+      "minStars": 10000,
+      "limit": 8,
+      "topics": []
+    },
+    "search": {
+      "provider": "disabled",
+      "queries": [
+        "personal knowledge management markdown",
+        "open source AI developer tools"
+      ],
+      "limit": 3
+    }
+  },
+  "limits": {
+    "maxItemsPerRun": 12,
+    "maxAiPerRun": 8,
+    "maxSourceChars": 24000,
+    "staleDays": 90,
+    "maxLinksPerRun": 60
+  }
+}

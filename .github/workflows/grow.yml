@@ -1,0 +1,10 @@
+name: Collect and prepare review drafts
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  local-only:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'Run collection locally. Review drafts and private reports must remain local.'

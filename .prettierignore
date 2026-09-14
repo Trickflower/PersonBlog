@@ -1,0 +1,9 @@
+/public/
+node_modules
+.quartz-cache
+private/
+.npm-cache/
+.playwright/
+vault/inbox/
+vault/review/
+vault/archive/
