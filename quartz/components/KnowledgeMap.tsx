@@ -24,19 +24,33 @@ const KnowledgeMap: QuartzComponent = ({ allFiles, fileData }) => {
   )
   return (
     <section class="knowledge-map" aria-label="知识关系图谱">
-      <header class="map-toolbar">
-        <button class="map-directory-toggle" aria-expanded="true" aria-controls="home-directory">
-          收起目录
+      <div class="map-controls">
+        <button
+          class="map-directory-toggle"
+          aria-expanded="true"
+          aria-controls="home-directory map-heading"
+          aria-label="收起目录"
+          title="收起目录"
+        >
+          <span data-map-icon="directory" aria-hidden="true" />
         </button>
+        <button
+          class="map-overview"
+          disabled
+          aria-label="返回知识图谱总览"
+          title="返回知识图谱总览"
+        >
+          <span data-map-icon="overview" aria-hidden="true" />
+          总览
+        </button>
+      </div>
+      <header class="map-toolbar" id="map-heading">
         <div>
           <h1>知识关系图谱</h1>
           <p>
-            {notes.length} 篇笔记 · {edges.length} 条关联 · 选择节点预览
+            {notes.length} 篇笔记 · {edges.length} 条关联
           </p>
         </div>
-        <button class="map-overview" disabled aria-label="返回知识图谱总览">
-          总览
-        </button>
       </header>
       <div class="map-stage">
         <div class="map-scene">
@@ -69,8 +83,8 @@ const KnowledgeMap: QuartzComponent = ({ allFiles, fileData }) => {
       </div>
       {notes.map((note, i) => (
         <section class="map-preview" id={"map-preview-" + i} hidden aria-label="文章预览">
-          <button class="map-close" aria-label="关闭预览">
-            ×
+          <button class="map-close" aria-label="关闭预览" title="关闭预览">
+            <span data-map-icon="close" aria-hidden="true" />
           </button>
           <h2>{note.frontmatter?.title}</h2>
           <p>
