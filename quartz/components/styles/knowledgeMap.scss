@@ -79,14 +79,17 @@ body[data-slug="index"] {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: radial-gradient(circle, var(--lightgray) 1px, transparent 1px) 0 0 / 24px 24px;
+  background:
+    linear-gradient(rgb(8 12 20 / 38%), rgb(8 12 20 / 38%)),
+    url("./assets/leimu.webp") center / cover no-repeat;
 }
 .map-toolbar {
   display: flex;
   align-items: center;
   gap: 24px;
   padding: 20px 24px;
-  background: var(--light);
+  background: color-mix(in srgb, var(--light) 82%, transparent);
+  backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--lightgray);
 }
 .map-toolbar h1 {
@@ -151,7 +154,8 @@ body[data-slug="index"] {
   width: max-content;
   padding: 8px;
   border: 0;
-  background: var(--light);
+  background: color-mix(in srgb, var(--light) 88%, transparent);
+  backdrop-filter: blur(8px);
   color: var(--dark);
   font: inherit;
   font-size: 0.95rem;
@@ -184,7 +188,8 @@ body[data-slug="index"] {
   width: min(420px, calc(100% - 48px));
   box-sizing: border-box;
   padding: 24px;
-  background: var(--light);
+  background: color-mix(in srgb, var(--light) 90%, transparent);
+  backdrop-filter: blur(14px);
   border: 1px solid var(--lightgray);
   border-radius: 12px;
   box-shadow: 0 12px 40px #0002;
