@@ -14,23 +14,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run test:kb
       - run: npx tsc --noEmit
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
         id: pages
       - run: npm run build
         env:
           SITE_BASE_URL: ${{ steps.pages.outputs.host }}${{ steps.pages.outputs.base_path }}
           SITE_REPOSITORY: ${{ github.repository }}
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: public
   deploy:
@@ -40,5 +40,5 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/deploy-pages@v4
+      - uses: actions/deploy-pages@v5
         id: deployment
