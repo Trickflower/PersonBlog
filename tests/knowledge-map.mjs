@@ -40,13 +40,32 @@ try {
     )
     await toggle.click()
     const url = page.url()
+    const scene = page.locator(".map-scene")
     await nodes.first().click()
     assert.equal(page.url(), url, "node must not navigate")
+    await page.waitForTimeout(600)
+    const stageBox = await page.locator(".map-stage").boundingBox()
+    const focusedBox = await nodes.first().boundingBox()
+    assert.ok(
+      Math.abs(focusedBox.x + focusedBox.width / 2 - (stageBox.x + stageBox.width / 2)) < 3,
+      "selected node moves to horizontal center",
+    )
+    assert.ok(
+      Math.abs(focusedBox.y + focusedBox.height / 2 - (stageBox.y + stageBox.height / 2)) < 3,
+      "selected node moves to vertical center",
+    )
+    assert.notEqual(await scene.evaluate((el) => getComputedStyle(el).transform), "none")
     const preview = page.locator(".map-preview:visible")
     assert.ok((await preview.locator("h2").innerText()).length > 0)
     assert.ok((await preview.locator("p").innerText()).length > 30)
     await page.screenshot({ path: "private/qa/map-" + width + ".png", fullPage: true })
     await preview.locator(".map-close").click()
+    await page.waitForTimeout(600)
+    assert.equal(await page.locator(".map-overview").isDisabled(), true)
+    assert.equal(
+      await scene.evaluate((el) => getComputedStyle(el).transform),
+      "matrix(1, 0, 0, 1, 0, 0)",
+    )
     await nodes.first().focus()
     await page.keyboard.press("Enter")
     await page.locator(".map-preview:visible .map-read").click()

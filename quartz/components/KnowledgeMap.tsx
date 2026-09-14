@@ -34,26 +34,38 @@ const KnowledgeMap: QuartzComponent = ({ allFiles, fileData }) => {
             {notes.length} 篇笔记 · {edges.length} 条关联 · 选择节点预览
           </p>
         </div>
+        <button class="map-overview" disabled aria-label="返回知识图谱总览">
+          总览
+        </button>
       </header>
       <div class="map-stage">
-        <svg class="map-edges" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-          {edges.map(({ source, target }) => (
-            <line x1={source.x} y1={source.y} x2={target.x} y2={target.y} />
-          ))}
-        </svg>
-        {nodes.map(({ note, x, y }, i) => (
-          <button
-            class="map-node"
-            style={{ left: x + "%", top: y + "%" }}
-            data-preview={"map-preview-" + i}
-            aria-expanded="false"
-            aria-controls={"map-preview-" + i}
+        <div class="map-scene">
+          <svg
+            class="map-edges"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            aria-hidden="true"
           >
-            <span class="map-dot" />
-            {note.frontmatter?.title}
-          </button>
-        ))}
-        {notes.length === 0 && <p>还没有公开笔记。</p>}
+            {edges.map(({ source, target }) => (
+              <line x1={source.x} y1={source.y} x2={target.x} y2={target.y} />
+            ))}
+          </svg>
+          {nodes.map(({ note, x, y }, i) => (
+            <button
+              class="map-node"
+              style={{ left: x + "%", top: y + "%" }}
+              data-preview={"map-preview-" + i}
+              data-x={x}
+              data-y={y}
+              aria-expanded="false"
+              aria-controls={"map-preview-" + i}
+            >
+              <span class="map-dot" />
+              {note.frontmatter?.title}
+            </button>
+          ))}
+          {notes.length === 0 && <p>还没有公开笔记。</p>}
+        </div>
       </div>
       {notes.map((note, i) => (
         <section class="map-preview" id={"map-preview-" + i} hidden aria-label="文章预览">
