@@ -234,6 +234,12 @@ function renderEditor() {
   const editable = ["inbox", "review"].includes(view)
   $("#editor-container").innerHTML =
     `<section class="editor"><div class="editor-heading"><h3>${view === "review" ? "审核笔记" : view === "published" ? "已发布文章" : view === "archive" ? "归档记录" : "原始笔记"}</h3><button class="icon" data-command="close" title="关闭笔记" aria-label="关闭笔记">${icon("x")}</button></div>${note.meta.source ? `<div class="source-link"><a href="${escape(/^https?:\/\//.test(note.meta.source) ? note.meta.source : "#")}" target="_blank" rel="noopener noreferrer">${escape(note.meta.source)}</a></div>` : ""}<div class="editor-fields"><label>标题<input id="edit-title" class="editor-title" maxlength="160" value="${escape(note.meta.title)}" ${editable ? "" : "readonly"}></label><div class="field-grid"><label>分类<select id="edit-category" ${editable ? "" : "disabled"}>${state.config.categories.map((c) => `<option ${c === note.meta.category ? "selected" : ""}>${escape(c)}</option>`).join("")}</select></label><label>标签<input id="edit-tags" value="${escape((note.meta.tags || []).join(", "))}" ${editable ? "" : "readonly"}></label></div><label>摘要<textarea id="edit-summary" rows="2" maxlength="1200" ${editable ? "" : "readonly"}>${escape(note.meta.summary || "")}</textarea></label></div><div class="editor-tabs"><div class="segmented"><button data-editor-tab="source" class="${editable ? "active" : ""}">Markdown</button><button data-editor-tab="preview" class="${editable ? "" : "active"}">预览</button></div><span class="quiet" id="save-status">${note.meta.organizer === "ai" ? "AI 草稿" : note.meta.organizer === "rules" ? "规则整理" : "手动笔记"}</span></div><textarea id="edit-body" class="markdown" aria-label="Markdown 正文" ${editable ? "" : "readonly hidden"}>${escape(note.body)}</textarea><div class="prose" id="markdown-preview" ${editable ? "hidden" : ""}>${preview(note.body)}</div>${note.meta.inputTruncated ? '<div class="source-link">AI 仅整理了原文的一部分，完整资料保留在收件箱。</div>' : ""}<div class="editor-footer">${editable ? `<button class="secondary" data-command="save">${icon("save")}保存</button><button class="icon danger" data-command="archive" title="归档" aria-label="归档">${icon("archive")}</button><span class="spacer"></span>${view === "inbox" ? `<button class="primary" data-command="organize">${icon("sparkles")}整理</button>` : `<button class="primary" data-command="approve">${icon("check")}批准发布</button>`}` : view === "published" ? `<button class="secondary" data-command="revise">${icon("pencil")}创建修订稿</button><a href="http://127.0.0.1:4311/${encodeURIComponent(note.id)}" target="_blank" rel="noopener">查看文章</a>` : `<button class="secondary" data-command="restore">${icon("archive-restore")}恢复到收件箱</button>`}</div><div class="recommendations"><h4>相关内容</h4>${note.recommendations.length ? note.recommendations.map((r) => `<p><a href="http://127.0.0.1:4311/${encodeURIComponent(r.id)}" target="_blank" rel="noopener">${escape(r.title)}</a><span class="score">${Math.round(r.score * 100)}%</span></p>`).join("") : "<p>暂无相近笔记</p>"}</div></section>`
+  if (view === "published") {
+    $(".editor-footer").insertAdjacentHTML(
+      "beforeend",
+      `<button class="icon danger" data-command="delete" title="删除文章" aria-label="删除文章">${icon("trash-2")}</button>`,
+    )
+  }
   $("#editor-container").addEventListener("input", () => {
     dirty = true
     $("#save-status").textContent = "未保存"
@@ -274,6 +280,14 @@ async function command(action) {
   }
   if (action === "archive" && !(await confirmAction("归档这篇笔记？", "归档后仍可恢复到收件箱。")))
     return
+  if (
+    action === "delete" &&
+    !(await confirmAction(
+      `删除「${note.meta.title}」？`,
+      "文章将移出已发布目录，并保留本地备份。重新构建并发布后，线上文章会下架。",
+    ))
+  )
+    return
   if (dirty && ["organize", "approve", "archive"].includes(action)) await saveCurrent()
   let result = await api("/api/action", { action, id: selected, area: view, version: note.version })
   if (result?.requiresConfirmation) {
@@ -290,6 +304,7 @@ async function command(action) {
       version: note.version,
     })
   }
+  if (action === "delete") chosen.delete(selected)
   dirty = false
   note = null
   selected = null
@@ -304,6 +319,7 @@ async function command(action) {
       archive: "已归档",
       restore: "已恢复",
       revise: "修订稿已创建",
+      delete: "文章已删除；更新博客预览并发布后，线上下架",
     }[action],
   )
 }

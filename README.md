@@ -34,6 +34,8 @@ npm run preview
 
 已发布文章可以“创建修订稿”，审核后更新同一篇文章。修改冲突会被阻止，避免覆盖在 Obsidian 中的外部修改。归档支持恢复。专题在“已发布”中勾选至少两篇文章后生成。
 
+删除文章：在本地工作台“已发布”中打开文章，点击垃圾桶按钮并确认。文章会移出公开目录，原始文件保存在被 Git 忽略的 `private/trash`，同名待审核稿和原稿不会被删除。删除后运行“更新博客预览”，提交并发布后线上文章才会下架。需要恢复时，可从该本地备份重新导入收件箱并审核发布。
+
 微信支持粘贴正文/链接，不读取微信账号或自动同步微信收藏。需要登录、反爬验证或浏览器渲染才能访问的页面，使用粘贴正文收录。
 
 ## Obsidian
@@ -173,4 +175,4 @@ npm run test:ui
 
 Git 备份公开文章与代码。收件箱、归档、`.env` 和 Obsidian 配置默认被 Git 忽略，请另外备份 `vault` 与 `private` 到自己的私密存储。
 
-博客内置四篇起始文章，可以修订；收件箱示例不会自动发布。首页书架图片来自 [Unsplash 原图](https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=1400&q=85&fit=crop)，本地文件为 `vault/published/assets/library.jpg`。Quartz 原始 MIT 许可证保存在 `LICENSE.txt`，上游文档在 `docs`。
+首页保留知识图谱与壁纸，知识文章由本地工作台审核发布。书架素材来自 [Unsplash 原图](https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=1400&q=85&fit=crop)，本地文件为 `vault/published/assets/library.jpg`。Quartz 原始 MIT 许可证保存在 `LICENSE.txt`，上游文档在 `docs`。

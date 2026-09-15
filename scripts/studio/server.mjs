@@ -21,6 +21,7 @@ import {
   archive,
   restore,
   revise,
+  deletePublished,
   weekly,
   synthesize,
   health,
@@ -125,7 +126,7 @@ app.post("/api/notes/:area/:id", async (req, res) => {
 app.post("/api/action", async (req, res) => {
   const { action, id, area, confirmDuplicate, version } = z
     .object({
-      action: z.enum(["organize", "approve", "archive", "restore", "revise"]),
+      action: z.enum(["organize", "approve", "archive", "restore", "revise", "delete"]),
       id: z.string(),
       area: z.string().optional(),
       confirmDuplicate: z.boolean().default(false),
@@ -134,12 +135,15 @@ app.post("/api/action", async (req, res) => {
     .parse(req.body)
   if (action === "approve" && !version)
     return res.status(400).json({ error: "缺少审核版本，请刷新笔记" })
+  if (action === "delete" && area !== "published")
+    return res.status(400).json({ error: "只能删除已发布文章" })
   const work = {
     organize: () => organize(id),
     approve: () => approve(id, { confirmDuplicate, version }),
     archive: () => archive(area, id),
     restore: () => restore(id),
     revise: () => revise(id),
+    delete: () => deletePublished(id, { version }),
   }[action]
   res.json((await withLock(work)) ?? { ok: true })
 })

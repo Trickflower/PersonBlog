@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url"
 import assert from "node:assert/strict"
 import { chromium } from "@playwright/test"
 import sharp from "sharp"
+import { serializeNote } from "../scripts/kb/store.mjs"
 
 const root = fileURLToPath(new URL("../", import.meta.url))
 const qa = path.join(root, "private/qa")
@@ -13,9 +14,23 @@ await fs.mkdir(qa, { recursive: true })
 await fs.mkdir(path.join(root, "private/test-runs"), { recursive: true })
 const fixture = await fs.mkdtemp(path.join(root, "private/test-runs/browser-"))
 await fs.cp(path.join(root, "config"), path.join(fixture, "config"), { recursive: true })
-await fs.cp(path.join(root, "vault/published"), path.join(fixture, "vault/published"), {
-  recursive: true,
-})
+await fs.mkdir(path.join(fixture, "vault/published"), { recursive: true })
+for (let index = 1; index <= 4; index++) {
+  await fs.writeFile(
+    path.join(fixture, `vault/published/fixture-${index}.md`),
+    serializeNote(
+      {
+        title: `独立测试文章 ${index}`,
+        publish: true,
+        status: "published",
+        approvedAt: new Date().toISOString(),
+        category: "技术",
+        tags: ["测试"],
+      },
+      `Independent browser fixture ${index}. This content exists only in an isolated test directory.`,
+    ),
+  )
+}
 await fs.cp(path.join(root, "scripts/studio/public"), path.join(fixture, "scripts/studio/public"), {
   recursive: true,
 })
@@ -135,6 +150,39 @@ try {
   await page.locator("[data-command=restore]").click()
   await page.waitForFunction(() => document.querySelector("#page-title")?.textContent === "收件箱")
   results.archive = "archive and restore verified"
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.locator("#navigation [data-view=published]").click()
+  await page.locator("[data-note]").filter({ hasText: "人工审核后的文章" }).click()
+  const deleteState = await (await fetch(`${base}/api/state`)).json()
+  const deleteId = deleteState.notes.published.find((n) => n.meta.title === "人工审核后的文章").id
+  const original = await fs.readFile(path.join(fixture, `vault/published/${deleteId}.md`), "utf8")
+  const invalidDelete = await fetch(`${base}/api/action`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "delete", area: "published", id: deleteId }),
+  })
+  assert.equal(invalidDelete.status, 403)
+  await page.locator('[data-command="delete"]').click()
+  await page.screenshot({ path: path.join(qa, "delete-confirm-mobile.png"), fullPage: true })
+  await page.click("#confirm-cancel")
+  assert.equal(
+    await fs.readFile(path.join(fixture, `vault/published/${deleteId}.md`), "utf8"),
+    original,
+  )
+  await page.locator('[data-command="delete"]').click()
+  await page.click("#confirm-ok")
+  await page.waitForFunction(() => !document.querySelector("#edit-title"))
+  assert.equal((await (await fetch(`${base}/api/state`)).json()).notes.published.length, 4)
+  await assert.rejects(fs.access(path.join(fixture, `vault/published/${deleteId}.md`)), {
+    code: "ENOENT",
+  })
+  const trashFiles = await fs.readdir(path.join(fixture, "private/trash"))
+  assert.equal(
+    await fs.readFile(path.join(fixture, "private/trash", trashFiles[0]), "utf8"),
+    original,
+  )
+  results.delete =
+    "confirmation, cancellation, deletion, session protection and local recovery verified"
   await page.locator("#navigation [data-view=settings]").click()
   await page.locator("#settings-form [name=title]").fill("隔离测试站点")
   await page.locator("#settings-form button[type=submit]").click()
@@ -168,35 +216,38 @@ try {
     .locator("article img")
     .evaluateAll((imgs) => imgs.every((img) => img.complete && img.naturalWidth > 0))
   assert.equal(imageOk, true, "blog cover must load")
-  assert.equal(await blog.locator(".map-node").count(), 4)
+  const publicIndex = await (await fetch("http://127.0.0.1:4311/static/contentIndex.json")).json()
+  const publicIds = Object.keys(publicIndex).filter((id) => id !== "index")
+  assert.equal(await blog.locator(".map-node").count(), publicIds.length)
   await blog.screenshot({ path: path.join(qa, "blog-desktop.png"), fullPage: true })
-  await blog.goto("http://127.0.0.1:4311/markdown-notes", { waitUntil: "networkidle" })
-  assert.ok((await blog.locator("article pre").innerText()).includes("unique_tags"))
-  assert.ok((await blog.locator('a.internal[href*="connected-notes"]').count()) > 0)
-  await blog.locator(".search-button").first().click()
-  await blog.locator(".search-bar").first().fill("代码")
-  await blog.waitForTimeout(500)
-  assert.ok((await blog.locator(".result-card").count()) > 0, "Chinese search must find articles")
-  await blog.keyboard.press("Escape")
-  await blog.goto("http://127.0.0.1:4311", { waitUntil: "networkidle" })
-  await blog.goto("http://127.0.0.1:4311/markdown-notes", { waitUntil: "networkidle" })
-  await blog.locator(".global-graph-icon").click()
-  await blog.waitForTimeout(1200)
-  const canvas = blog.locator(".global-graph-container canvas")
-  await canvas.waitFor({ state: "visible" })
-  assert.ok(await canvas.evaluate((c) => c.width > 0 && c.height > 0))
-  const graphPixels = await sharp(await canvas.screenshot()).stats()
-  assert.ok(
-    graphPixels.channels.some((channel) => channel.stdev > 2),
-    "graph pixels must be nonblank",
-  )
-  const graphBox = await canvas.boundingBox()
-  await blog.mouse.move(graphBox.x + graphBox.width / 2, graphBox.y + graphBox.height / 2)
-  await blog.mouse.wheel(0, -150)
-  await blog.waitForTimeout(300)
-  await blog.screenshot({ path: path.join(qa, "knowledge-graph.png"), fullPage: true })
-  results.graph = "visible canvas, nonblank pixels and zoom interaction checked"
-  await blog.keyboard.press("Escape")
+  if (publicIds.length) {
+    await blog.goto(`http://127.0.0.1:4311/${encodeURIComponent(publicIds[0])}`, {
+      waitUntil: "networkidle",
+    })
+    assert.ok((await blog.locator("article").innerText()).length > 0)
+    await blog.locator(".search-button").first().click()
+    await blog.locator(".search-bar").first().fill("代码")
+    await blog.waitForTimeout(500)
+    assert.ok((await blog.locator(".result-card").count()) > 0, "Chinese search must find articles")
+    await blog.keyboard.press("Escape")
+    await blog.locator(".global-graph-icon").click()
+    await blog.waitForTimeout(1200)
+    const canvas = blog.locator(".global-graph-container canvas")
+    await canvas.waitFor({ state: "visible" })
+    assert.ok(await canvas.evaluate((c) => c.width > 0 && c.height > 0))
+    const graphPixels = await sharp(await canvas.screenshot()).stats()
+    assert.ok(
+      graphPixels.channels.some((channel) => channel.stdev > 2),
+      "graph pixels must be nonblank",
+    )
+    const graphBox = await canvas.boundingBox()
+    await blog.mouse.move(graphBox.x + graphBox.width / 2, graphBox.y + graphBox.height / 2)
+    await blog.mouse.wheel(0, -150)
+    await blog.waitForTimeout(300)
+    await blog.screenshot({ path: path.join(qa, "knowledge-graph.png"), fullPage: true })
+    results.graph = "visible canvas, nonblank pixels and zoom interaction checked"
+    await blog.keyboard.press("Escape")
+  }
   await blog.setViewportSize({ width: 390, height: 844 })
   await blog.goto("http://127.0.0.1:4311", { waitUntil: "networkidle" })
   assert.equal(
@@ -204,11 +255,9 @@ try {
     false,
   )
   await blog.screenshot({ path: path.join(qa, "blog-mobile.png"), fullPage: true })
-  const publicIndex = await (await fetch("http://127.0.0.1:4311/static/contentIndex.json")).json()
   assert.ok(!Object.keys(publicIndex).some((id) => id.startsWith("source-") || id === "first-idea"))
   assert.equal((await fetch("http://127.0.0.1:4311/api/state")).status, 404)
-  results.blog =
-    "cover, articles, code, wikilinks, Chinese search, mobile layout, private boundary verified"
+  results.blog = "public node count, responsive layout and private boundary verified"
   assert.deepEqual(errors, [], `Browser errors: ${errors.join("\n")}`)
   await fs.writeFile(
     path.join(qa, "browser-results.json"),

@@ -78,7 +78,11 @@ const KnowledgeMap: QuartzComponent = ({ allFiles, fileData }) => {
               {note.frontmatter?.title}
             </button>
           ))}
-          {notes.length === 0 && <p>还没有公开笔记。</p>}
+          {notes.length === 0 && (
+            <p class="map-empty" role="status">
+              暂无公开知识
+            </p>
+          )}
         </div>
       </div>
       {notes.map((note, i) => (

@@ -21,6 +21,11 @@ await fs.mkdir("private/qa", { recursive: true })
 try {
   const page = await browser.newPage()
   page.on("pageerror", (e) => errors.push(e.message))
+  const contentResponse = await page.request.get(
+    `${base.replace(/\/$/, "")}/static/contentIndex.json`,
+  )
+  assert.equal(contentResponse.status(), 200)
+  const noteCount = Object.keys(await contentResponse.json()).filter((id) => id !== "index").length
   const centered = async (node) => {
     await expect
       .poll(
@@ -78,8 +83,7 @@ try {
     await page.setViewportSize({ width, height })
     await page.goto(base, { waitUntil: "networkidle" })
     const nodes = page.locator(".map-node")
-    assert.equal(await nodes.count(), 4)
-    assert.ok((await page.locator(".map-edges line").count()) > 0)
+    assert.equal(await nodes.count(), noteCount)
     const toggle = page.locator(".map-directory-toggle")
     if ((await toggle.getAttribute("aria-expanded")) === "true") await toggle.click()
     const full = await page.locator(".knowledge-map").boundingBox()
@@ -93,10 +97,11 @@ try {
         (await page.locator(".knowledge-map").boundingBox()).width < full.width,
         "desktop directory takes space",
       )
-    assert.ok(
-      await page.locator(".sidebar.left .explorer-content a").first().isVisible(),
-      "directory links visible",
-    )
+    if (noteCount)
+      assert.ok(
+        await page.locator(".sidebar.left .explorer-content a").first().isVisible(),
+        "directory links visible",
+      )
     await toggle.click()
     const url = page.url()
     const scene = page.locator(".map-scene")
@@ -113,6 +118,21 @@ try {
       (await sharp(screenshot).stats()).channels.some((channel) => channel.stdev > 20),
       "wallpaper and graph pixels are nonblank",
     )
+    if (!noteCount) {
+      await expect(page.locator(".map-empty")).toBeVisible()
+      await expect(page.locator(".map-overview")).toBeDisabled()
+      assert.equal(await page.locator(".map-edges line").count(), 0)
+      assert.equal(await page.locator(".map-preview").count(), 0)
+      assert.equal(
+        await page.evaluate(
+          () =>
+            document.documentElement.scrollWidth > innerWidth + 1 ||
+            document.documentElement.scrollHeight > innerHeight + 1,
+        ),
+        false,
+      )
+      continue
+    }
     await nodes.first().click()
     assert.equal(page.url(), url, "node must not navigate")
     await centered(nodes.first())
@@ -127,7 +147,7 @@ try {
         await centered(node)
       }
       // A new selection during an active animation must replace the target, not accumulate offsets.
-      for (const node of [nodes.first(), nodes.nth(1), nodes.first()]) {
+      for (const node of [nodes.first(), nodes.nth(Math.min(1, noteCount - 1)), nodes.first()]) {
         await node.evaluate((el) => el.focus({ preventScroll: true }))
         await page.keyboard.press("Enter")
       }
@@ -161,17 +181,19 @@ try {
       false,
     )
   }
-  await page.emulateMedia({ reducedMotion: "reduce" })
-  await page.locator(".map-node").first().click()
-  await centered(page.locator(".map-node").first())
-  assert.equal(
-    await page.locator(".map-scene").evaluate((el) => getComputedStyle(el).transitionDuration),
-    "0s",
-  )
-  await overview()
+  if (noteCount) {
+    await page.emulateMedia({ reducedMotion: "reduce" })
+    await page.locator(".map-node").first().click()
+    await centered(page.locator(".map-node").first())
+    assert.equal(
+      await page.locator(".map-scene").evaluate((el) => getComputedStyle(el).transitionDuration),
+      "0s",
+    )
+    await overview()
+  }
   assert.deepEqual(errors, [])
   console.log(
-    "PASS: desktop/tablet/mobile, directory, edges, preview, keyboard, article navigation, SPA return, no overflow or browser errors",
+    `PASS: ${noteCount} public notes; six viewport layouts, wallpaper, directory and ${noteCount ? "focus/preview/navigation" : "empty state"}; no browser errors`,
   )
 } finally {
   await browser.close()

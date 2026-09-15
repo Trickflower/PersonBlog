@@ -20,6 +20,47 @@ const network = await import("../scripts/kb/network.mjs")
 const { parseTrending } = await import("../scripts/kb/collect.mjs")
 await store.setup()
 
+test("delete published notes checks version, preserves private revisions, and keeps a recoverable copy", async () => {
+  const id = "deletion-fixture"
+  const article = await store.saveNote(
+    "published",
+    id,
+    { title: "删除测试", publish: true },
+    "已发布正文",
+  )
+  const revision = await store.saveNote(
+    "review",
+    id,
+    { title: "私密修订", publish: false },
+    "待审核正文",
+  )
+  const source = await store.saveNote(
+    "inbox",
+    id,
+    { title: "私密原稿", publish: false },
+    "原稿正文",
+  )
+  await assert.rejects(pipeline.deletePublished(id), /缺少文章版本/)
+  await assert.rejects(pipeline.deletePublished(id, { version: "stale" }), /已修改/)
+  await assert.rejects(pipeline.deletePublished("index", { version: "any" }), /首页不能删除/)
+  await assert.rejects(
+    pipeline.deletePublished("../review/deletion-fixture", { version: "any" }),
+    /无效笔记 ID/,
+  )
+  assert.equal((await store.loadNote("published", id)).raw, article.raw)
+  await store.withLock(() => pipeline.deletePublished(id, { version: store.hash(article.raw) }))
+  await assert.rejects(store.loadNote("published", id), { code: "ENOENT" })
+  assert.equal((await store.loadNote("review", id)).raw, revision.raw)
+  assert.equal((await store.loadNote("inbox", id)).raw, source.raw)
+  const trash = path.join(store.paths.root, "private/trash")
+  const backups = (await fs.readdir(trash)).filter((name) => name.endsWith(`-${id}.md`))
+  assert.equal(backups.length, 1)
+  assert.equal(await fs.readFile(path.join(trash, backups[0]), "utf8"), article.raw)
+  await assert.rejects(pipeline.deletePublished(id, { version: store.hash(article.raw) }), {
+    code: "ENOENT",
+  })
+})
+
 test("monthly Trending records preserve the reported period instead of total stars", () => {
   const html =
     '<article class="Box-row"><h2><a href="/owner/project">project</a></h2><a href="/owner/project/stargazers">12,345</a><span class="d-inline-block float-sm-right">2,100 stars this month</span></article>'

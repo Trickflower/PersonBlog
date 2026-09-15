@@ -271,6 +271,22 @@ export async function revise(id) {
   )
 }
 
+export async function deletePublished(id, { version } = {}) {
+  const source = notePath("published", id)
+  if (id.toLowerCase() === "index") throw new Error("首页不能删除")
+  if (!version) throw new Error("缺少文章版本，请刷新后再删除")
+  const stat = await fs.lstat(source)
+  if (!stat.isFile() || stat.isSymbolicLink()) throw new Error("只能删除普通文章文件")
+  const raw = await fs.readFile(source, "utf8")
+  if (hash(raw) !== version) throw new Error("文章已修改，请刷新后再删除")
+  const trash = path.join(paths.root, "private/trash")
+  await fs.mkdir(trash, { recursive: true })
+  const backup = path.join(trash, `${crypto.randomUUID()}-${id}.md`)
+  await fs.rename(source, backup)
+  await audit("delete-published", { id, backup: path.relative(paths.root, backup) })
+  return { ok: true, deletedId: id }
+}
+
 export async function archive(area, id) {
   if (!["inbox", "review"].includes(area)) throw new Error("只有未发布笔记可以归档")
   const note = await loadNote(area, id)
